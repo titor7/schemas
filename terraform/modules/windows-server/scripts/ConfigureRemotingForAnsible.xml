@@ -1,0 +1,27 @@
+<FirstLogonCommands>
+    <SynchronousCommand>
+        <CommandLine>powershell -ExecutionPolicy Unrestricted -Command "Set-ExecutionPolicy Unrestricted -Force"</CommandLine>
+        <Description>Set PowerShell execution policy</Description>
+        <Order>1</Order>
+    </SynchronousCommand>
+    <SynchronousCommand>
+        <CommandLine>powershell -ExecutionPolicy Unrestricted -Command "Enable-PSRemoting -Force"</CommandLine>
+        <Description>Enable PowerShell Remoting</Description>
+        <Order>2</Order>
+    </SynchronousCommand>
+    <SynchronousCommand>
+        <CommandLine>powershell -ExecutionPolicy Unrestricted -Command "Set-Item WSMan:\localhost\Service\Auth\Basic $true"</CommandLine>
+        <Description>Enable basic authentication</Description>
+        <Order>3</Order>
+    </SynchronousCommand>
+    <SynchronousCommand>
+        <CommandLine>powershell -ExecutionPolicy Unrestricted -Command "Set-Item WSMan:\localhost\Service\AllowUnencrypted $true"</CommandLine>
+        <Description>Allow unencrypted connections</Description>
+        <Order>4</Order>
+    </SynchronousCommand>
+    <SynchronousCommand>
+        <CommandLine>powershell -ExecutionPolicy Unrestricted -Command "New-NetFirewallRule -DisplayName 'WinRM HTTP' -Direction Inbound -Protocol TCP -LocalPort 5985 -Action Allow"</CommandLine>
+        <Description>Configure firewall for WinRM</Description>
+        <Order>5</Order>
+    </SynchronousCommand>
+</FirstLogonCommands>

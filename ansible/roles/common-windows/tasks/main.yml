@@ -1,0 +1,124 @@
+---
+# Common Windows Server configuration tasks
+
+- name: Set computer name
+  win_hostname:
+    name: "{{ inventory_hostname }}"
+  notify: reboot server
+
+- name: Configure time zone
+  win_timezone:
+    timezone: "W. Europe Standard Time"
+
+- name: Configure NTP client
+  win_shell: |
+    w32tm /config /manualpeerlist:"{{ ntp_servers | join(',') }}" /syncfromflags:manual /reliable:yes /update
+    w32tm /resync
+  changed_when: false
+
+- name: Install common Windows features
+  win_feature:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+    include_management_tools: "{{ item.include_management_tools | default(false) }}"
+  loop: "{{ common_windows_features }}"
+  notify: reboot server
+
+- name: Configure Windows Firewall rules
+  win_firewall_rule:
+    name: "{{ item.name }}"
+    localport: "{{ item.localport }}"
+    protocol: "{{ item.protocol }}"
+    action: "{{ item.action }}"
+    direction: "{{ item.direction }}"
+    state: present
+  loop: "{{ ad_firewall_rules }}"
+
+- name: Apply security registry settings
+  win_regedit:
+    path: "{{ item.path }}"
+    name: "{{ item.name }}"
+    data: "{{ item.data }}"
+    type: "{{ item.type }}"
+  loop: "{{ security_registry_settings }}"
+
+- name: Configure event log sizes
+  win_eventlog:
+    name: "{{ item }}"
+    maximum_size: "{{ event_log_size }}"
+  loop:
+    - Application
+    - Security
+    - System
+
+- name: Enable Windows Defender
+  win_shell: |
+    Set-MpPreference -DisableRealtimeMonitoring $false
+    Set-MpPreference -DisableBehaviorMonitoring $false
+    Set-MpPreference -DisableIOAVProtection $false
+    Set-MpPreference -DisablePrivacyMode $false
+    Set-MpPreference -SignatureDisableUpdateOnStartupWithoutEngine $false
+    Set-MpPreference -DisableArchiveScanning $false
+    Set-MpPreference -DisableIntrusionPreventionSystem $false
+    Set-MpPreference -DisableScriptScanning $false
+    Set-MpPreference -SubmitSamplesConsent SendSafeSamples
+  changed_when: false
+
+- name: Configure Windows Update settings
+  win_updates:
+    category_names:
+      - SecurityUpdates
+      - CriticalUpdates
+      - UpdateRollups
+    state: installed
+    reboot: no
+  register: update_result
+
+- name: Create local administrator backup account
+  win_user:
+    name: "LocalAdmin"
+    password: "{{ vault_local_admin_password }}"
+    groups:
+      - Administrators
+    account_disabled: no
+    account_locked: no
+    description: "Local backup administrator account"
+    password_expired: no
+    password_never_expires: yes
+    user_cannot_change_password: yes
+
+- name: Disable unnecessary services
+  win_service:
+    name: "{{ item }}"
+    state: stopped
+    start_mode: disabled
+  loop:
+    - Fax
+    - XblAuthManager
+    - XblGameSave
+    - XboxNetApiSvc
+    - XboxGipSvc
+  ignore_errors: true
+
+- name: Configure PowerShell execution policy
+  win_shell: Set-ExecutionPolicy RemoteSigned -Force
+  changed_when: false
+
+- name: Install Chocolatey
+  win_shell: |
+    Set-ExecutionPolicy Bypass -Scope Process -Force
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+    iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+  args:
+    creates: C:\ProgramData\chocolatey\bin\choco.exe
+
+- name: Install useful tools via Chocolatey
+  win_chocolatey:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - notepadplusplus
+    - 7zip
+    - putty
+    - winscp
+  ignore_errors: true

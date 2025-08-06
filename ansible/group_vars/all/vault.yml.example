@@ -1,0 +1,17 @@
+# Example Ansible vault variables
+# Create actual vault file with: ansible-vault create group_vars/all/vault.yml
+
+# Passwords (these should be encrypted with ansible-vault)
+vault_admin_password: "YourSecurePassword123!"
+vault_safe_mode_password: "YourSafeModePassword123!"
+vault_elbe_admin_password: "ELBEAdminPassword123!"
+vault_elbe_svc_password: "ELBEServicePassword123!"
+vault_local_admin_password: "LocalAdminPassword123!"
+
+# To encrypt this file:
+# 1. Create the actual vault file:
+#    ansible-vault create ansible/group_vars/all/vault.yml
+# 2. Add the above variables with your actual passwords
+# 3. Set vault password file:
+#    echo "your_vault_password" > .vault_pass
+#    export ANSIBLE_VAULT_PASSWORD_FILE=.vault_pass

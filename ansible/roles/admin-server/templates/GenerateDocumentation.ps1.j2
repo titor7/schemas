@@ -1,0 +1,92 @@
+# ELBE Network Documentation Generator
+$OutputFile = "C:\AdminTools\NetworkDocumentation.html"
+
+$HTML = @"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ELBE Infrastructure Documentation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        h1, h2 { color: #333; }
+    </style>
+</head>
+<body>
+    <h1>ELBE Infrastructure Documentation</h1>
+    <p>Generated on: $(Get-Date)</p>
+    
+    <h2>Server Inventory</h2>
+    <table>
+        <tr>
+            <th>Server Name</th>
+            <th>IP Address</th>
+            <th>Role</th>
+            <th>VLAN</th>
+        </tr>
+        <tr>
+            <td>ELBE-N998</td>
+            <td>179.105.12.98/27</td>
+            <td>Primary Domain Controller</td>
+            <td>213 ([z2] intranet-elbe)</td>
+        </tr>
+        <tr>
+            <td>ELBE-N999</td>
+            <td>179.105.12.99/27</td>
+            <td>Secondary Domain Controller</td>
+            <td>213 ([z2] intranet-elbe)</td>
+        </tr>
+        <tr>
+            <td>ELBE-V909</td>
+            <td>179.105.13.9/24</td>
+            <td>Administration Server</td>
+            <td>213 ([z2] intranet-elbe)</td>
+        </tr>
+        <tr>
+            <td>ELBE-V981</td>
+            <td>179.105.13.81/24</td>
+            <td>RDS Farm Server</td>
+            <td>213 ([z2] intranet-elbe)</td>
+        </tr>
+        <tr>
+            <td>ELBE-V982</td>
+            <td>179.105.13.82/24</td>
+            <td>RDS Farm Server</td>
+            <td>213 ([z2] intranet-elbe)</td>
+        </tr>
+    </table>
+    
+    <h2>Network Ports and Services</h2>
+    <table>
+        <tr>
+            <th>Service</th>
+            <th>Port</th>
+            <th>Protocol</th>
+            <th>Description</th>
+        </tr>
+        <tr><td>Kerberos</td><td>88</td><td>TCP/UDP</td><td>Authentication</td></tr>
+        <tr><td>NTP</td><td>123</td><td>TCP/UDP</td><td>Time synchronization</td></tr>
+        <tr><td>RPC Endpoint Mapper</td><td>135</td><td>TCP</td><td>RPC communications</td></tr>
+        <tr><td>SMB</td><td>445</td><td>TCP</td><td>File sharing</td></tr>
+        <tr><td>Kerberos Password Change</td><td>464</td><td>TCP/UDP</td><td>Password changes</td></tr>
+        <tr><td>LDAPS</td><td>636</td><td>TCP</td><td>Secure LDAP</td></tr>
+        <tr><td>Global Catalog SSL</td><td>3269</td><td>TCP</td><td>Global Catalog over SSL</td></tr>
+        <tr><td>WinRM</td><td>5985</td><td>TCP</td><td>Windows Remote Management</td></tr>
+        <tr><td>ADWS</td><td>9389</td><td>TCP</td><td>Active Directory Web Services</td></tr>
+        <tr><td>RPC Dynamic Range</td><td>49152-65535</td><td>TCP</td><td>Dynamic RPC</td></tr>
+    </table>
+    
+    <h2>Domain Information</h2>
+    <p><strong>Domain Name:</strong> {{ domain_name }}</p>
+    <p><strong>NetBIOS Name:</strong> {{ domain_netbios_name }}</p>
+    <p><strong>Forest Functional Level:</strong> Windows Server 2016</p>
+    <p><strong>Domain Functional Level:</strong> Windows Server 2016</p>
+    
+</body>
+</html>
+"@
+
+$HTML | Out-File -FilePath $OutputFile -Encoding UTF8
+Write-Output "Documentation generated: $OutputFile"

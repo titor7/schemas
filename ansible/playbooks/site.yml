@@ -1,0 +1,137 @@
+---
+# Site-specific playbook for production environment
+
+- import_playbook: deploy-elbe-infrastructure.yml
+
+- name: Production-specific configuration
+  hosts: elbe_forest
+  gather_facts: false
+  tasks:
+    - name: Configure production-specific security settings
+      win_regedit:
+        path: "{{ item.path }}"
+        name: "{{ item.name }}"
+        data: "{{ item.data }}"
+        type: "{{ item.type }}"
+      loop:
+        - path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+          name: "ConsentPromptBehaviorAdmin"
+          data: 2
+          type: "dword"
+        - path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+          name: "ConsentPromptBehaviorUser"
+          data: 1
+          type: "dword"
+        - path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+          name: "EnableLUA"
+          data: 1
+          type: "dword"
+
+    - name: Configure Windows Defender real-time protection
+      win_shell: |
+        Set-MpPreference -DisableRealtimeMonitoring $false
+        Set-MpPreference -DisableBehaviorMonitoring $false
+        Set-MpPreference -DisableIOAVProtection $false
+        Set-MpPreference -DisableScriptScanning $false
+        Update-MpSignature
+      changed_when: false
+
+    - name: Enable Windows Firewall on all profiles
+      win_firewall:
+        state: enabled
+        profiles:
+          - domain
+          - private
+          - public
+
+    - name: Configure automatic updates for security patches
+      win_regedit:
+        path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU"
+        name: "{{ item.name }}"
+        data: "{{ item.data }}"
+        type: "dword"
+      loop:
+        - name: "NoAutoUpdate"
+          data: 0
+        - name: "AUOptions"
+          data: 4  # Download and install automatically
+        - name: "ScheduledInstallDay"
+          data: 1  # Sunday
+        - name: "ScheduledInstallTime"
+          data: 3  # 3 AM
+
+- name: Configure backup strategy
+  hosts: primary_dc
+  gather_facts: false
+  tasks:
+    - name: Create backup directories
+      win_file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - C:\Backups
+        - C:\Backups\AD
+        - C:\Backups\SYSVOL
+        - C:\Backups\Registry
+
+    - name: Create comprehensive backup script
+      win_copy:
+        content: |
+          # ELBE Production Backup Script
+          $BackupRoot = "C:\Backups"
+          $Date = Get-Date -Format "yyyyMMdd"
+          
+          # Create daily backup folder
+          $DailyBackup = "$BackupRoot\$Date"
+          if (!(Test-Path $DailyBackup)) {
+              New-Item -ItemType Directory -Path $DailyBackup -Force
+          }
+          
+          Write-Output "Starting backup process at $(Get-Date)"
+          
+          # Backup System State (includes AD database)
+          Write-Output "Backing up System State..."
+          wbadmin start systemstatebackup -backuptarget:$DailyBackup -quiet
+          
+          # Backup SYSVOL manually
+          Write-Output "Backing up SYSVOL..."
+          robocopy "C:\Windows\SYSVOL" "$DailyBackup\SYSVOL" /MIR /R:3 /W:5 /LOG:"$DailyBackup\sysvol_backup.log"
+          
+          # Export registry
+          Write-Output "Exporting registry..."
+          reg export HKLM "$DailyBackup\Registry\HKLM.reg" /y
+          reg export HKCU "$DailyBackup\Registry\HKCU.reg" /y
+          
+          # Generate AD reports
+          Write-Output "Generating AD reports..."
+          repadmin /showrepl > "$DailyBackup\replication_status.txt"
+          dcdiag > "$DailyBackup\dcdiag.txt"
+          netdom query dc > "$DailyBackup\domain_controllers.txt"
+          
+          # Export Group Policy
+          Write-Output "Backing up Group Policy..."
+          Backup-GPO -All -Path "$DailyBackup\GPO"
+          
+          # Cleanup old backups (keep 7 days)
+          Write-Output "Cleaning up old backups..."
+          Get-ChildItem $BackupRoot -Directory | Where-Object {$_.CreationTime -lt (Get-Date).AddDays(-7)} | Remove-Item -Recurse -Force
+          
+          Write-Output "Backup completed at $(Get-Date)"
+          
+          # Send notification (if email is configured)
+          # Send-MailMessage -To "admin@elbe.its.dnsi" -Subject "ELBE Backup Completed" -Body "Daily backup completed successfully at $(Get-Date)" -SmtpServer "mail.elbe.its.dnsi"
+        dest: C:\Scripts\ProductionBackup.ps1
+
+    - name: Schedule production backup
+      win_scheduled_task:
+        name: "ELBE Production Backup"
+        description: "Daily production backup of ELBE infrastructure"
+        actions:
+          - path: powershell.exe
+            arguments: -ExecutionPolicy Bypass -File "C:\Scripts\ProductionBackup.ps1"
+        triggers:
+          - type: daily
+            start_boundary: "2023-01-01T01:00:00"
+        username: SYSTEM
+        logon_type: service_account
+        state: present

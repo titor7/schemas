@@ -1,0 +1,8 @@
+---
+# Handlers for domain controller role
+
+- name: reboot server
+  ansible.windows.win_reboot:
+    reboot_timeout: 600
+    connect_timeout: 60
+    test_command: whoami

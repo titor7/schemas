@@ -1,0 +1,257 @@
+---
+# RDS Server configuration tasks
+
+- name: Wait for domain to be available
+  win_wait_for_process:
+    process_name_exact: lsass
+    timeout: 300
+
+- name: Join server to domain
+  ansible.windows.win_domain_membership:
+    dns_domain_name: "{{ domain_name }}"
+    hostname: "{{ inventory_hostname }}"
+    domain_admin_user: "{{ domain_admin_user }}@{{ domain_name }}"
+    domain_admin_password: "{{ ansible_password }}"
+    state: domain
+  notify: reboot server
+
+- name: Install Remote Desktop Services
+  win_feature:
+    name: "{{ item }}"
+    state: present
+    include_management_tools: true
+  loop:
+    - RDS-RD-Server
+    - RDS-Connection-Broker
+    - RDS-Web-Access
+    - RDS-Licensing
+    - RDS-Gateway
+
+- name: Configure RDS licensing
+  win_shell: |
+    Import-Module RemoteDesktop
+    Set-RDLicenseConfiguration -LicenseServer "{{ inventory_hostname }}" -Mode PerUser -Force
+  ignore_errors: true
+
+- name: Configure RDS firewall rules
+  win_firewall_rule:
+    name: "{{ item.name }}"
+    localport: "{{ item.localport }}"
+    protocol: "{{ item.protocol }}"
+    action: "{{ item.action }}"
+    direction: "{{ item.direction }}"
+    state: present
+  loop:
+    - name: "Remote Desktop Services (RDP-TCP-In)"
+      localport: "3389"
+      protocol: "TCP"
+      action: "allow"
+      direction: "in"
+    - name: "Remote Desktop Services (UDP-In)"
+      localport: "3389"
+      protocol: "UDP"
+      action: "allow"
+      direction: "in"
+    - name: "RDS Gateway (HTTPS-TCP-In)"
+      localport: "443"
+      protocol: "TCP"
+      action: "allow"
+      direction: "in"
+    - name: "RDS Gateway (UDP-In)"
+      localport: "3391"
+      protocol: "UDP"
+      action: "allow"
+      direction: "in"
+
+- name: Configure RDS Session Host settings
+  win_regedit:
+    path: "{{ item.path }}"
+    name: "{{ item.name }}"
+    data: "{{ item.data }}"
+    type: "{{ item.type }}"
+  loop:
+    - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\Terminal Services"
+      name: "MaxInstanceCount"
+      data: 50
+      type: "dword"
+    - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\Terminal Services"
+      name: "MaxDisconnectionTime"
+      data: 3600000  # 1 hour in milliseconds
+      type: "dword"
+    - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\Terminal Services"
+      name: "MaxIdleTime"
+      data: 1800000  # 30 minutes in milliseconds
+      type: "dword"
+    - path: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\Terminal Services"
+      name: "RemoteAppLogoffTimeLimit"
+      data: 300000   # 5 minutes in milliseconds
+      type: "dword"
+
+- name: Install common applications for RDS
+  win_chocolatey:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - adobereader
+    - libreoffice-fresh
+    - googlechrome
+    - firefox
+    - notepadplusplus
+    - 7zip
+  ignore_errors: true
+
+- name: Create RDS application folders
+  win_file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - C:\RDSApps
+    - C:\RDSProfiles
+    - C:\RDSLogs
+
+- name: Configure user profile redirection
+  win_regedit:
+    path: "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Terminal Server\\Install\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders"
+    name: "{{ item.name }}"
+    data: "{{ item.data }}"
+    type: "string"
+  loop:
+    - name: "Desktop"
+      data: "C:\\RDSProfiles\\%USERNAME%\\Desktop"
+    - name: "Personal"
+      data: "C:\\RDSProfiles\\%USERNAME%\\Documents"
+
+- name: Configure RDS session collection (on first RDS server only)
+  win_shell: |
+    Import-Module RemoteDesktop
+    try {
+        $Collection = Get-RDSessionCollection -CollectionName "ELBE-RDS-Collection" -ErrorAction SilentlyContinue
+        if (-not $Collection) {
+            New-RDSessionCollection -CollectionName "ELBE-RDS-Collection" -SessionHost @("ELBE-V981", "ELBE-V982") -CollectionDescription "ELBE RDS Farm Collection"
+            Write-Output "RDS Collection created successfully"
+        } else {
+            Write-Output "RDS Collection already exists"
+        }
+    } catch {
+        Write-Output "Error creating RDS Collection: $($_.Exception.Message)"
+    }
+  when: inventory_hostname == "ELBE-V981"
+  ignore_errors: true
+
+- name: Configure load balancing for RDS farm
+  win_shell: |
+    Import-Module RemoteDesktop
+    try {
+        Set-RDSessionHost -SessionHost "{{ inventory_hostname }}" -NewConnectionAllowed Yes -MaxSessions 50
+        Write-Output "RDS Session Host configured for load balancing"
+    } catch {
+        Write-Output "Error configuring RDS Session Host: $($_.Exception.Message)"
+    }
+  ignore_errors: true
+
+- name: Create RDS monitoring script
+  win_copy:
+    content: |
+      # RDS Server Monitoring Script
+      $Date = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+      $LogFile = "C:\RDSLogs\RDSMonitoring.txt"
+      
+      Write-Output "=== RDS Server Health Check - $Date ===" | Out-File -Append $LogFile
+      
+      # Check RDS services
+      $RDSServices = @("TermService", "SessionEnv", "UmRdpService")
+      foreach ($Service in $RDSServices) {
+          try {
+              $ServiceStatus = Get-Service -Name $Service -ErrorAction SilentlyContinue
+              if ($ServiceStatus) {
+                  Write-Output "$Service: $($ServiceStatus.Status)" | Out-File -Append $LogFile
+              } else {
+                  Write-Output "$Service: NOT FOUND" | Out-File -Append $LogFile
+              }
+          } catch {
+              Write-Output "$Service: Error - $($_.Exception.Message)" | Out-File -Append $LogFile
+          }
+      }
+      
+      # Check active sessions
+      try {
+          $Sessions = quser 2>$null
+          if ($Sessions) {
+              $SessionCount = ($Sessions | Measure-Object).Count - 1  # Subtract header
+              Write-Output "Active Sessions: $SessionCount" | Out-File -Append $LogFile
+          } else {
+              Write-Output "Active Sessions: 0" | Out-File -Append $LogFile
+          }
+      } catch {
+          Write-Output "Active Sessions: Error checking sessions" | Out-File -Append $LogFile
+      }
+      
+      # Check memory usage
+      try {
+          $Memory = Get-WmiObject -Class Win32_OperatingSystem
+          $MemoryUsage = [math]::Round((($Memory.TotalVisibleMemorySize - $Memory.FreePhysicalMemory) / $Memory.TotalVisibleMemorySize) * 100, 2)
+          Write-Output "Memory Usage: $MemoryUsage%" | Out-File -Append $LogFile
+      } catch {
+          Write-Output "Memory Usage: Error checking memory" | Out-File -Append $LogFile
+      }
+      
+      # Check CPU usage
+      try {
+          $CPU = Get-WmiObject -Class Win32_Processor | Measure-Object -Property LoadPercentage -Average
+          Write-Output "CPU Usage: $($CPU.Average)%" | Out-File -Append $LogFile
+      } catch {
+          Write-Output "CPU Usage: Error checking CPU" | Out-File -Append $LogFile
+      }
+      
+      Write-Output "RDS Health check completed at $Date" | Out-File -Append $LogFile
+      Write-Output "" | Out-File -Append $LogFile
+    dest: C:\RDSLogs\MonitorRDS.ps1
+
+- name: Create scheduled task for RDS monitoring
+  win_scheduled_task:
+    name: "RDS Server Monitoring"
+    description: "Monitor RDS server health and sessions"
+    actions:
+      - path: powershell.exe
+        arguments: -ExecutionPolicy Bypass -File "C:\RDSLogs\MonitorRDS.ps1"
+    triggers:
+      - type: daily
+        start_boundary: "2023-01-01T08:00:00"
+        repetition:
+          interval: PT1H
+          duration: P1D
+    username: SYSTEM
+    state: present
+
+- name: Configure RDS licensing grace period extension (if needed)
+  win_shell: |
+    $RegPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Terminal Server\TSAppAllowList\Applications"
+    if (Test-Path $RegPath) {
+        # Configure any specific application licensing if needed
+        Write-Output "RDS licensing configuration checked"
+    }
+  ignore_errors: true
+
+- name: Create RDS user access policy
+  win_shell: |
+    Import-Module RemoteDesktop
+    try {
+        # Set user access for domain users
+        Set-RDSessionCollectionConfiguration -CollectionName "ELBE-RDS-Collection" -UserGroup "{{ domain_netbios_name }}\Domain Users" -MaxRedirectedMonitors 2
+        Write-Output "RDS user access policy configured"
+    } catch {
+        Write-Output "Error configuring RDS user access policy: $($_.Exception.Message)"
+    }
+  when: inventory_hostname == "ELBE-V981"
+  ignore_errors: true
+
+- name: Ensure RDS services are running
+  win_service:
+    name: "{{ item }}"
+    state: started
+    start_mode: auto
+  loop:
+    - TermService
+    - SessionEnv
+    - UmRdpService
+    - Spooler

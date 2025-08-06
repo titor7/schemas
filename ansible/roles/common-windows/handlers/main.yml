@@ -1,0 +1,8 @@
+---
+# Handlers for common Windows role
+
+- name: reboot server
+  win_reboot:
+    reboot_timeout: 600
+    connect_timeout: 60
+    test_command: whoami

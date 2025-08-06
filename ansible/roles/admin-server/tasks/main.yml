@@ -1,0 +1,229 @@
+---
+# Administration Server configuration tasks
+
+- name: Install RSAT tools
+  win_feature:
+    name: "{{ item }}"
+    state: present
+    include_management_tools: true
+  loop:
+    - RSAT-AD-Tools
+    - RSAT-ADDS
+    - RSAT-DNS-Server
+    - RSAT-DFS-Mgmt-Con
+    - RSAT-File-Services
+    - RSAT-NPS
+    - RSAT-RemoteAccess
+    - RSAT-RDS-Tools
+    - GPMC
+
+- name: Wait for domain to be available
+  win_wait_for_process:
+    process_name_exact: lsass
+    timeout: 300
+
+- name: Join server to domain
+  ansible.windows.win_domain_membership:
+    dns_domain_name: "{{ domain_name }}"
+    hostname: "{{ inventory_hostname }}"
+    domain_admin_user: "{{ domain_admin_user }}@{{ domain_name }}"
+    domain_admin_password: "{{ ansible_password }}"
+    state: domain
+  notify: reboot server
+
+- name: Install IIS for web-based administration
+  win_feature:
+    name: "{{ item }}"
+    state: present
+    include_management_tools: true
+  loop:
+    - IIS-WebServerRole
+    - IIS-WebServer
+    - IIS-CommonHttpFeatures
+    - IIS-HttpErrors
+    - IIS-HttpLogging
+    - IIS-RequestMonitor
+    - IIS-Security
+    - IIS-RequestFiltering
+    - IIS-StaticContent
+    - IIS-DefaultDocument
+    - IIS-DirectoryBrowsing
+    - IIS-ASPNET45
+    - IIS-NetFxExtensibility45
+    - IIS-ISAPIExtensions
+    - IIS-ISAPIFilter
+    - IIS-Mgmt-Console
+
+- name: Create administration tools directory
+  win_file:
+    path: C:\AdminTools
+    state: directory
+
+- name: Install PowerShell modules for administration
+  win_shell: |
+    Install-PackageProvider -Name NuGet -Force -Scope AllUsers
+    Install-Module -Name ActiveDirectory -Force -Scope AllUsers
+    Install-Module -Name DnsServer -Force -Scope AllUsers -SkipPublisherCheck
+    Install-Module -Name GroupPolicy -Force -Scope AllUsers -SkipPublisherCheck
+  ignore_errors: true
+
+- name: Create monitoring script
+  win_copy:
+    content: |
+      # ELBE Infrastructure Monitoring Script
+      $Date = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+      $LogFile = "C:\AdminTools\MonitoringLog.txt"
+      
+      Write-Output "=== ELBE Infrastructure Health Check - $Date ===" | Out-File -Append $LogFile
+      
+      # Check domain controllers
+      $DCs = @("ELBE-N998", "ELBE-N999")
+      foreach ($DC in $DCs) {
+          try {
+              $Result = Test-Connection -ComputerName $DC -Count 2 -Quiet
+              if ($Result) {
+                  Write-Output "$DC: Online" | Out-File -Append $LogFile
+              } else {
+                  Write-Output "$DC: OFFLINE" | Out-File -Append $LogFile
+              }
+          } catch {
+              Write-Output "$DC: Error - $($_.Exception.Message)" | Out-File -Append $LogFile
+          }
+      }
+      
+      # Check RDS servers
+      $RDSServers = @("ELBE-V981", "ELBE-V982")
+      foreach ($RDS in $RDSServers) {
+          try {
+              $Result = Test-Connection -ComputerName $RDS -Count 2 -Quiet
+              if ($Result) {
+                  Write-Output "$RDS: Online" | Out-File -Append $LogFile
+              } else {
+                  Write-Output "$RDS: OFFLINE" | Out-File -Append $LogFile
+              }
+          } catch {
+              Write-Output "$RDS: Error - $($_.Exception.Message)" | Out-File -Append $LogFile
+          }
+      }
+      
+      # Check AD replication
+      try {
+          $ReplStatus = repadmin /showrepl
+          if ($LASTEXITCODE -eq 0) {
+              Write-Output "AD Replication: OK" | Out-File -Append $LogFile
+          } else {
+              Write-Output "AD Replication: ISSUES DETECTED" | Out-File -Append $LogFile
+          }
+      } catch {
+          Write-Output "AD Replication: Error checking status" | Out-File -Append $LogFile
+      }
+      
+      # Check DNS
+      try {
+          $DNSResult = nslookup {{ domain_name }}
+          if ($LASTEXITCODE -eq 0) {
+              Write-Output "DNS Resolution: OK" | Out-File -Append $LogFile
+          } else {
+              Write-Output "DNS Resolution: FAILED" | Out-File -Append $LogFile
+          }
+      } catch {
+          Write-Output "DNS Resolution: Error" | Out-File -Append $LogFile
+      }
+      
+      Write-Output "Health check completed at $Date" | Out-File -Append $LogFile
+      Write-Output "" | Out-File -Append $LogFile
+    dest: C:\AdminTools\MonitorInfrastructure.ps1
+
+- name: Create scheduled task for monitoring
+  win_scheduled_task:
+    name: "ELBE Infrastructure Monitoring"
+    description: "Monitor ELBE infrastructure health"
+    actions:
+      - path: powershell.exe
+        arguments: -ExecutionPolicy Bypass -File "C:\AdminTools\MonitorInfrastructure.ps1"
+    triggers:
+      - type: daily
+        start_boundary: "2023-01-01T08:00:00"
+        repetition:
+          interval: PT4H
+          duration: P1D
+    username: SYSTEM
+    state: present
+
+- name: Create user management script
+  win_copy:
+    content: |
+      # ELBE User Management Script
+      function New-ELBEUser {
+          param(
+              [Parameter(Mandatory=$true)]
+              [string]$Username,
+              [Parameter(Mandatory=$true)]
+              [string]$Password,
+              [Parameter(Mandatory=$true)]
+              [string]$FirstName,
+              [Parameter(Mandatory=$true)]
+              [string]$LastName,
+              [string]$Department,
+              [string]$Title
+          )
+          
+          $SecurePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+          $UserPrincipalName = "$Username@{{ domain_name }}"
+          
+          try {
+              New-ADUser -Name "$FirstName $LastName" `
+                        -GivenName $FirstName `
+                        -Surname $LastName `
+                        -SamAccountName $Username `
+                        -UserPrincipalName $UserPrincipalName `
+                        -AccountPassword $SecurePassword `
+                        -Department $Department `
+                        -Title $Title `
+                        -Path "OU=Users,DC=elbe,DC=its,DC=dnsi" `
+                        -Enabled $true `
+                        -ChangePasswordAtLogon $true
+              
+              Write-Output "User $Username created successfully"
+          } catch {
+              Write-Error "Failed to create user $Username : $($_.Exception.Message)"
+          }
+      }
+      
+      function Remove-ELBEUser {
+          param(
+              [Parameter(Mandatory=$true)]
+              [string]$Username
+          )
+          
+          try {
+              Remove-ADUser -Identity $Username -Confirm:$false
+              Write-Output "User $Username removed successfully"
+          } catch {
+              Write-Error "Failed to remove user $Username : $($_.Exception.Message)"
+          }
+      }
+      
+      Export-ModuleMember -Function New-ELBEUser, Remove-ELBEUser
+    dest: C:\AdminTools\ELBEUserManagement.psm1
+
+- name: Create network documentation script from template
+  ansible.windows.win_template:
+    src: GenerateDocumentation.ps1.j2
+    dest: C:\AdminTools\GenerateDocumentation.ps1
+
+- name: Create desktop shortcuts for admin tools
+  community.windows.win_shortcut:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    description: "{{ item.description }}"
+  loop:
+    - src: "C:\\Windows\\System32\\dsa.msc"
+      dest: "C:\\Users\\Public\\Desktop\\Active Directory Users and Computers.lnk"
+      description: "Active Directory Users and Computers"
+    - src: "C:\\Windows\\System32\\dnsmgmt.msc"
+      dest: "C:\\Users\\Public\\Desktop\\DNS Manager.lnk"
+      description: "DNS Manager"
+    - src: "C:\\Windows\\System32\\gpmc.msc"
+      dest: "C:\\Users\\Public\\Desktop\\Group Policy Management.lnk"
+      description: "Group Policy Management Console"

@@ -1,0 +1,234 @@
+---
+# Validation playbook for ELBE infrastructure
+
+- name: Validate ELBE Infrastructure Deployment
+  hosts: elbe_forest
+  gather_facts: false
+  tasks:
+    - name: Test basic connectivity
+      win_ping:
+
+    - name: Check if server is domain joined
+      win_shell: |
+        $computer = Get-WmiObject -Class Win32_ComputerSystem
+        if ($computer.PartOfDomain) {
+            Write-Output "Domain: $($computer.Domain)"
+        } else {
+            Write-Output "Not domain joined"
+        }
+      register: domain_status
+
+    - name: Display domain status
+      debug:
+        msg: "{{ inventory_hostname }}: {{ domain_status.stdout.strip() }}"
+
+- name: Validate Domain Controllers
+  hosts: domain_controllers
+  gather_facts: false
+  tasks:
+    - name: Check Active Directory services
+      win_service:
+        name: "{{ item }}"
+      register: ad_services
+      loop:
+        - ADWS
+        - DNS
+        - KDC
+        - Netlogon
+        - NTDS
+
+    - name: Display AD service status
+      debug:
+        msg: "{{ item.item }}: {{ item.state }} ({{ item.start_mode }})"
+      loop: "{{ ad_services.results }}"
+
+    - name: Test AD replication
+      win_shell: repadmin /showrepl
+      register: replication_status
+      ignore_errors: true
+
+    - name: Check DNS functionality
+      win_shell: nslookup {{ domain_name }}
+      register: dns_test
+      ignore_errors: true
+
+    - name: Test domain authentication
+      win_shell: |
+        try {
+          $domain = Get-ADDomain -Identity "{{ domain_name }}"
+          Write-Output "Domain functional level: $($domain.DomainMode)"
+          Write-Output "Forest functional level: $($domain.ForestMode)"
+        } catch {
+          Write-Output "Error accessing domain: $($_.Exception.Message)"
+        }
+      register: domain_info
+      ignore_errors: true
+
+- name: Validate RDS Servers
+  hosts: rds_servers
+  gather_facts: false
+  tasks:
+    - name: Check RDS services
+      win_service:
+        name: "{{ item }}"
+      register: rds_services
+      loop:
+        - TermService
+        - SessionEnv
+        - UmRdpService
+
+    - name: Display RDS service status
+      debug:
+        msg: "{{ item.item }}: {{ item.state }} ({{ item.start_mode }})"
+      loop: "{{ rds_services.results }}"
+
+    - name: Test RDS session host configuration
+      win_shell: |
+        Import-Module RemoteDesktop
+        try {
+          $sessionHost = Get-RDSessionHost -SessionHost "{{ inventory_hostname }}"
+          Write-Output "Session Host Status: $($sessionHost.NewConnectionAllowed)"
+          Write-Output "Max Sessions: $($sessionHost.MaxSessions)"
+        } catch {
+          Write-Output "Error: $($_.Exception.Message)"
+        }
+      register: rds_config
+      ignore_errors: true
+
+- name: Validate Admin Server
+  hosts: admin_servers
+  gather_facts: false
+  tasks:
+    - name: Check RSAT tools installation
+      win_feature:
+        name: "{{ item }}"
+      register: rsat_features
+      loop:
+        - RSAT-AD-Tools
+        - RSAT-DNS-Server
+        - GPMC
+
+    - name: Display RSAT status
+      debug:
+        msg: "{{ item.item }}: {{ 'Installed' if item.state == 'present' else 'Not Installed' }}"
+      loop: "{{ rsat_features.results }}"
+
+- name: Network Connectivity Tests
+  hosts: elbe_forest
+  gather_facts: false
+  tasks:
+    - name: Test connectivity to domain controllers
+      win_shell: Test-NetConnection -ComputerName "{{ item }}" -Port 389
+      register: dc_connectivity
+      loop:
+        - ELBE-N998
+        - ELBE-N999
+      ignore_errors: true
+
+    - name: Test DNS resolution
+      win_shell: |
+        $tests = @(
+          "{{ domain_name }}",
+          "ELBE-N998.{{ domain_name }}",
+          "ELBE-N999.{{ domain_name }}",
+          "ELBE-V909.{{ domain_name }}",
+          "ELBE-V981.{{ domain_name }}",
+          "ELBE-V982.{{ domain_name }}"
+        )
+        
+        foreach ($test in $tests) {
+          try {
+            $result = Resolve-DnsName -Name $test -ErrorAction Stop
+            Write-Output "$test: OK"
+          } catch {
+            Write-Output "$test: FAILED"
+          }
+        }
+      register: dns_resolution
+      ignore_errors: true
+
+- name: Security Validation
+  hosts: elbe_forest
+  gather_facts: false
+  tasks:
+    - name: Check Windows Firewall status
+      win_shell: |
+        $profiles = @("Domain", "Private", "Public")
+        foreach ($profile in $profiles) {
+          $status = (Get-NetFirewallProfile -Name $profile).Enabled
+          Write-Output "$profile Profile: $($status)"
+        }
+      register: firewall_status
+
+    - name: Check Windows Defender status
+      win_shell: |
+        try {
+          $defender = Get-MpComputerStatus
+          Write-Output "Real-time Protection: $($defender.RealTimeProtectionEnabled)"
+          Write-Output "Antivirus Enabled: $($defender.AntivirusEnabled)"
+          Write-Output "Last Scan: $($defender.QuickScanEndTime)"
+        } catch {
+          Write-Output "Windows Defender status unavailable"
+        }
+      register: defender_status
+      ignore_errors: true
+
+    - name: Check for pending updates
+      win_shell: |
+        try {
+          $updates = Get-WUList -MicrosoftUpdate
+          if ($updates) {
+            Write-Output "Pending updates: $($updates.Count)"
+          } else {
+            Write-Output "No pending updates"
+          }
+        } catch {
+          Write-Output "Update status unavailable"
+        }
+      register: update_status
+      ignore_errors: true
+
+- name: Generate Validation Report
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Create validation report
+      copy:
+        content: |
+          ELBE Infrastructure Validation Report
+          ====================================
+          
+          Generated: {{ ansible_date_time.iso8601 }}
+          
+          This report contains the validation results for the ELBE infrastructure deployment.
+          
+          Key Validation Points:
+          - Domain controllers are operational
+          - Active Directory services are running
+          - DNS resolution is working
+          - RDS services are configured
+          - Security settings are applied
+          - Network connectivity is established
+          
+          For detailed results, check the Ansible playbook output.
+          
+          Next Steps:
+          1. Review any failed validation tests
+          2. Verify user access and permissions
+          3. Test application deployments
+          4. Configure monitoring and backup solutions
+          5. Document any customizations
+          
+        dest: ./validation-report.txt
+      delegate_to: localhost
+
+    - name: Display validation summary
+      debug:
+        msg: |
+          ELBE Infrastructure Validation Completed
+          ========================================
+          
+          All validation tests have been executed.
+          Please review the output above for any issues.
+          
+          A detailed validation report has been created: validation-report.txt

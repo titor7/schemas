@@ -1,0 +1,205 @@
+---
+# Domain Controller configuration tasks
+
+- name: Install Active Directory Domain Services
+  win_feature:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+    include_management_tools: "{{ item.include_management_tools | default(false) }}"
+  loop: "{{ dc_windows_features }}"
+  notify: reboot server
+
+- name: Configure additional firewall rules for domain controller
+  win_firewall_rule:
+    name: "{{ item.name }}"
+    localport: "{{ item.localport }}"
+    protocol: "{{ item.protocol }}"
+    action: "{{ item.action }}"
+    direction: "{{ item.direction }}"
+    state: present
+  loop: "{{ dc_additional_firewall_rules }}"
+
+- name: Check if domain exists
+  win_shell: |
+    try {
+      Get-ADDomain -Identity "{{ domain_name }}"
+      Write-Output "exists"
+    } catch {
+      Write-Output "not_exists"
+    }
+  register: domain_check
+  changed_when: false
+  ignore_errors: true
+
+- name: Create Active Directory forest (Primary DC only)
+  ansible.windows.win_domain:
+    dns_domain_name: "{{ domain_name }}"
+    domain_netbios_name: "{{ domain_netbios_name }}"
+    safe_mode_password: "{{ safe_mode_password }}"
+    domain_mode: "{{ domain_mode }}"
+    forest_mode: "{{ forest_mode }}"
+    create_dns_delegation: false
+    database_path: "C:\\Windows\\NTDS"
+    sysvol_path: "{{ sysvol_path }}"
+    log_path: "C:\\Windows\\NTDS"
+  when: 
+    - role == "primary-dc"
+    - domain_check.stdout.strip() == "not_exists"
+  notify: reboot server
+
+- name: Wait for primary domain controller to be ready
+  wait_for:
+    timeout: 300
+  when: role == "secondary-dc"
+  delegate_to: "{{ groups['primary_dc'][0] }}"
+
+- name: Join secondary domain controller to domain
+  ansible.windows.win_domain_controller:
+    dns_domain_name: "{{ domain_name }}"
+    safe_mode_password: "{{ safe_mode_password }}"
+    domain_admin_user: "{{ domain_admin_user }}@{{ domain_name }}"
+    domain_admin_password: "{{ ansible_password }}"
+    state: domain_controller
+    database_path: "C:\\Windows\\NTDS"
+    sysvol_path: "{{ sysvol_path }}"
+    log_path: "C:\\Windows\\NTDS"
+  when: 
+    - role == "secondary-dc"
+    - domain_check.stdout.strip() == "not_exists"
+  notify: reboot server
+
+- name: Configure DNS forwarders
+  win_shell: |
+    Add-DnsServerForwarder -IPAddress {{ dns_forwarders | join(',') }}
+  when: role == "primary-dc"
+  ignore_errors: true
+
+- name: Create organizational units
+  ansible.windows.win_shell: |
+    Import-Module ActiveDirectory
+    try {
+      New-ADOrganizationalUnit -Name "{{ item.name }}" -Path "{{ item.path }}" -Description "{{ item.description | default('') }}" -ProtectedFromAccidentalDeletion $true
+      Write-Output "Created OU: {{ item.name }}"
+    } catch {
+      Write-Output "OU {{ item.name }} already exists or error: $($_.Exception.Message)"
+    }
+  loop: "{{ organizational_units }}"
+  when: role == "primary-dc"
+  ignore_errors: true
+
+- name: Create domain administrator accounts
+  ansible.windows.win_shell: |
+    Import-Module ActiveDirectory
+    try {
+      $SecurePassword = ConvertTo-SecureString "{{ item.password }}" -AsPlainText -Force
+      New-ADUser -Name "{{ item.username }}" `
+                 -SamAccountName "{{ item.username }}" `
+                 -UserPrincipalName "{{ item.username }}@{{ domain_name }}" `
+                 -AccountPassword $SecurePassword `
+                 -Description "{{ item.description }}" `
+                 -Path "OU=Users,DC=elbe,DC=its,DC=dnsi" `
+                 -Enabled $true
+      
+      # Add to groups
+      {% for group in item.groups %}
+      Add-ADGroupMember -Identity "{{ group }}" -Members "{{ item.username }}"
+      {% endfor %}
+      
+      Write-Output "Created user: {{ item.username }}"
+    } catch {
+      Write-Output "User {{ item.username }} already exists or error: $($_.Exception.Message)"
+    }
+  loop: "{{ domain_admin_accounts }}"
+  when: role == "primary-dc"
+  no_log: true
+  ignore_errors: true
+
+- name: Configure password policy
+  win_shell: |
+    Import-Module ActiveDirectory
+    Set-ADDefaultDomainPasswordPolicy -Identity "{{ domain_name }}" `
+      -ComplexityEnabled ${{ password_policy.complexity_enabled | lower }} `
+      -MinPasswordAge {{ password_policy.minimum_password_age }} `
+      -MaxPasswordAge {{ password_policy.maximum_password_age }} `
+      -MinPasswordLength {{ password_policy.minimum_password_length }} `
+      -PasswordHistoryCount {{ password_policy.password_history_count }} `
+      -LockoutThreshold {{ password_policy.lockout_threshold }} `
+      -LockoutDuration {{ password_policy.lockout_duration }} `
+      -LockoutObservationWindow {{ password_policy.lockout_observation_window }}
+  when: role == "primary-dc"
+  changed_when: false
+
+- name: Configure sites and subnets
+  win_shell: |
+    Import-Module ActiveDirectory
+    $site = "{{ item.name }}"
+    {% for subnet in item.subnets %}
+    try {
+      New-ADReplicationSubnet -Name "{{ subnet }}" -Site $site
+    } catch {
+      Write-Output "Subnet {{ subnet }} already exists or error occurred"
+    }
+    {% endfor %}
+  loop: "{{ ad_sites }}"
+  when: role == "primary-dc"
+  ignore_errors: true
+
+- name: Configure audit policy
+  win_shell: |
+    {% for policy in audit_policy %}
+    auditpol /set /category:"{{ policy.category }}" /success:{{ 'enable' if 'Success' in policy.setting else 'disable' }} /failure:{{ 'enable' if 'Failure' in policy.setting else 'disable' }}
+    {% endfor %}
+  when: role == "primary-dc"
+  changed_when: false
+
+- name: Ensure DNS service is running
+  win_service:
+    name: DNS
+    state: started
+    start_mode: auto
+
+- name: Ensure Active Directory services are running
+  win_service:
+    name: "{{ item }}"
+    state: started
+    start_mode: auto
+  loop:
+    - ADWS
+    - NTDS
+    - KDC
+    - Netlogon
+
+- name: Create backup script
+  win_copy:
+    content: |
+      # AD Backup Script
+      $BackupPath = "C:\ADBackup"
+      if (!(Test-Path $BackupPath)) {
+        New-Item -ItemType Directory -Path $BackupPath -Force
+      }
+      
+      # Backup System State
+      wbadmin start systemstatebackup -backuptarget:$BackupPath -quiet
+      
+      # Export AD objects
+      $Date = Get-Date -Format "yyyy-MM-dd"
+      repadmin /showrepl > "$BackupPath\replication_status_$Date.txt"
+      dcdiag > "$BackupPath\dcdiag_$Date.txt"
+      
+      Write-Output "Backup completed successfully at $(Get-Date)"
+    dest: C:\Scripts\ADBackup.ps1
+  when: role == "primary-dc"
+
+- name: Create scheduled task for AD backup
+  win_scheduled_task:
+    name: "AD Backup"
+    description: "Daily Active Directory backup"
+    actions:
+      - path: powershell.exe
+        arguments: -ExecutionPolicy Bypass -File "C:\Scripts\ADBackup.ps1"
+    triggers:
+      - type: daily
+        start_boundary: "2023-01-01T02:00:00"
+    username: SYSTEM
+    state: present
+  when: role == "primary-dc"

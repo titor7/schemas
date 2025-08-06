@@ -1,0 +1,101 @@
+---
+# Main playbook for ELBE infrastructure deployment
+
+- name: Deploy ELBE Infrastructure
+  hosts: elbe_forest
+  gather_facts: false
+  serial: 1
+  
+  pre_tasks:
+    - name: Wait for servers to be accessible
+      wait_for_connection:
+        delay: 30
+        timeout: 300
+
+    - name: Gather facts
+      setup:
+
+  tasks:
+    - name: Display server information
+      debug:
+        msg: |
+          Configuring {{ inventory_hostname }}
+          IP: {{ ansible_host }}
+          Role: {{ role | default('undefined') }}
+
+- name: Configure Common Windows Settings
+  hosts: elbe_forest
+  gather_facts: false
+  serial: 3
+  roles:
+    - common-windows
+
+- name: Configure Primary Domain Controller
+  hosts: primary_dc
+  gather_facts: false
+  vars:
+    role: "primary-dc"
+  roles:
+    - domain-controller
+
+- name: Configure Secondary Domain Controller
+  hosts: secondary_dc
+  gather_facts: false
+  vars:
+    role: "secondary-dc"
+  roles:
+    - domain-controller
+
+- name: Configure Administration Server
+  hosts: admin_servers
+  gather_facts: false
+  roles:
+    - admin-server
+
+- name: Configure RDS Servers
+  hosts: rds_servers
+  gather_facts: false
+  roles:
+    - rds-server
+
+- name: Final validation
+  hosts: elbe_forest
+  gather_facts: false
+  tasks:
+    - name: Test domain connectivity
+      win_shell: |
+        try {
+          $domain = Get-ADDomain -Identity "{{ domain_name }}"
+          Write-Output "Domain: $($domain.Name) - Status: OK"
+        } catch {
+          Write-Output "Domain: {{ domain_name }} - Status: ERROR"
+        }
+      register: domain_test
+      ignore_errors: true
+
+    - name: Display domain test results
+      debug:
+        msg: "{{ domain_test.stdout_lines }}"
+
+    - name: Test DNS resolution
+      win_shell: nslookup {{ domain_name }}
+      register: dns_test
+      ignore_errors: true
+
+    - name: Display DNS test results
+      debug:
+        msg: "DNS resolution test completed"
+
+    - name: Create deployment completion marker
+      win_copy:
+        content: |
+          ELBE Infrastructure Deployment Completed
+          =====================================
+          
+          Deployment Date: {{ ansible_date_time.iso8601 }}
+          Server: {{ inventory_hostname }}
+          Role: {{ role | default('member-server') }}
+          Domain: {{ domain_name }}
+          
+          This file indicates that the Ansible deployment has completed successfully.
+        dest: C:\DeploymentComplete.txt

@@ -1,0 +1,117 @@
+# Group variables for Domain Controllers
+
+# Primary DC specific settings
+primary_dc_ip: "179.105.12.98"
+
+# Additional Windows features for domain controllers
+dc_windows_features:
+  - name: "AD-Domain-Services"
+    state: present
+    include_management_tools: true
+  - name: "DNS"
+    state: present
+    include_management_tools: true
+  - name: "GPMC"
+    state: present
+
+# Domain Controller specific firewall rules
+dc_additional_firewall_rules:
+  - name: "DNS (TCP-In)"
+    localport: "53"
+    protocol: "TCP"
+    action: "allow"
+    direction: "in"
+  - name: "DNS (UDP-In)"
+    localport: "53"
+    protocol: "UDP"
+    action: "allow"
+    direction: "in"
+  - name: "Active Directory Domain Services (LDAP-TCP-In)"
+    localport: "389"
+    protocol: "TCP"
+    action: "allow"
+    direction: "in"
+  - name: "Active Directory Domain Services (LDAP-UDP-In)"
+    localport: "389"
+    protocol: "UDP"
+    action: "allow"
+    direction: "in"
+  - name: "Active Directory Domain Services (GC-TCP-In)"
+    localport: "3268"
+    protocol: "TCP"
+    action: "allow"
+    direction: "in"
+
+# SYSVOL and NETLOGON share configuration
+sysvol_path: "C:\\Windows\\SYSVOL"
+netlogon_path: "C:\\Windows\\SYSVOL\\sysvol\\{{ domain_name }}\\SCRIPTS"
+
+# DNS configuration for domain controllers
+dns_root_hints_servers:
+  - "198.41.0.4"    # a.root-servers.net
+  - "199.9.14.201"  # b.root-servers.net
+  - "192.33.4.12"   # c.root-servers.net
+
+# Organizational Units to create
+organizational_units:
+  - name: "Servers"
+    path: "DC=elbe,DC=its,DC=dnsi"
+    description: "Organizational Unit for servers"
+  - name: "Workstations"
+    path: "DC=elbe,DC=its,DC=dnsi"
+    description: "Organizational Unit for workstations"
+  - name: "Users"
+    path: "DC=elbe,DC=its,DC=dnsi"
+    description: "Organizational Unit for users"
+  - name: "Groups"
+    path: "DC=elbe,DC=its,DC=dnsi"
+    description: "Organizational Unit for groups"
+  - name: "Service Accounts"
+    path: "DC=elbe,DC=its,DC=dnsi"
+    description: "Organizational Unit for service accounts"
+
+# Domain administrator accounts to create
+domain_admin_accounts:
+  - username: "elbe.admin"
+    password: "{{ vault_elbe_admin_password }}"
+    full_name: "ELBE Domain Administrator"
+    description: "Primary domain administrator account"
+    groups:
+      - "Domain Admins"
+      - "Enterprise Admins"
+      - "Schema Admins"
+  - username: "elbe.svc"
+    password: "{{ vault_elbe_svc_password }}"
+    full_name: "ELBE Service Account"
+    description: "Service account for ELBE applications"
+    groups:
+      - "Domain Users"
+
+# Group Policy settings
+group_policies:
+  - name: "ELBE Security Policy"
+    description: "Security settings for ELBE domain"
+    settings:
+      - category: "Password Policy"
+        setting: "Minimum password length"
+        value: "12"
+      - category: "Password Policy"
+        setting: "Password must meet complexity requirements"
+        value: "Enabled"
+      - category: "Account Lockout Policy"
+        setting: "Account lockout threshold"
+        value: "5"
+      - category: "Account Lockout Policy"
+        setting: "Account lockout duration"
+        value: "30"
+
+# Sites and subnets configuration
+ad_sites:
+  - name: "Default-First-Site-Name"
+    subnets:
+      - "179.105.12.96/27"
+      - "179.105.13.0/24"
+
+# Replication configuration
+replication_frequency: 180  # minutes
+replication_schedule: "24/7"
