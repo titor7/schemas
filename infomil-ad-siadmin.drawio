@@ -450,12 +450,31 @@
     </mxGraphModel>
   </diagram>
   <diagram id="raxnSM4bSTw3LpqLG2Od" name="Page-2">
-    <mxGraphModel dx="968" dy="625" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2231" dy="2075" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="wTu3hDlNceVT-fVzVu58-52" value="" style="endArrow=classic;html=1;rounded=0;fillColor=#e51400;strokeColor=#B20000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="wTu3hDlNceVT-fVzVu58-1" target="79Y2pOsYBKYRsN46qcYY-1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="260" y="80" as="sourcePoint" />
+            <mxPoint x="320" y="50" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-53" value="Forest Trust&amp;nbsp;(transitive)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="wTu3hDlNceVT-fVzVu58-52">
+          <mxGeometry x="0.1339" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="79Y2pOsYBKYRsN46qcYY-1" value="&lt;span style=&quot;background-color: rgb(255, 255, 255);&quot;&gt;elbe.its.dnsi&lt;/span&gt;&lt;br style=&quot;background-color: rgb(236, 236, 236);&quot;&gt;&lt;span style=&quot;background-color: rgb(255, 255, 255);&quot;&gt;ELBE-DNSI&lt;/span&gt;" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;spacingTop=-7;image=img/lib/active_directory/active_directory.svg;fontSize=15;fontStyle=1" vertex="1" parent="1">
           <mxGeometry x="360" y="100" width="50" height="42.5" as="geometry" />
+        </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-55" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;strokeColor=#B20000;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;fillColor=#e51400;startArrow=classic;startFill=1;" edge="1" parent="1" source="wTu3hDlNceVT-fVzVu58-1" target="wTu3hDlNceVT-fVzVu58-54">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-56" value="Forest trust (transitive)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];rounded=0;strokeColor=#B20000;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;fillColor=#e51400;" vertex="1" connectable="0" parent="wTu3hDlNceVT-fVzVu58-55">
+          <mxGeometry x="0.0417" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
         </mxCell>
         <mxCell id="wTu3hDlNceVT-fVzVu58-1" value="&lt;span&gt;&lt;span style=&quot;background-color: rgb(255, 255, 255);&quot;&gt;infomil.its.dnsi&lt;/span&gt;&lt;br style=&quot;background-color: rgb(236, 236, 236);&quot;&gt;&lt;span style=&quot;background-color: rgb(255, 255, 255);&quot;&gt;INFOMIL-DNSI&lt;/span&gt;&lt;/span&gt;" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;spacingTop=-7;image=img/lib/active_directory/active_directory.svg;fontSize=15;fontStyle=1" vertex="1" parent="1">
           <mxGeometry x="60" y="130" width="50" height="42.5" as="geometry" />
@@ -478,6 +497,11 @@
             <mxPoint x="130" y="241.11" as="targetPoint" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-63" value="Child" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="wTu3hDlNceVT-fVzVu58-44">
+          <mxGeometry x="-0.2444" y="-2" relative="1" as="geometry">
+            <mxPoint x="6" y="-2" as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="wTu3hDlNceVT-fVzVu58-45" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="80" y="520" as="sourcePoint" />
@@ -490,10 +514,20 @@
             <mxPoint x="130" y="331.11" as="targetPoint" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-65" value="Child" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="wTu3hDlNceVT-fVzVu58-46">
+          <mxGeometry x="0.0666" y="2" relative="1" as="geometry">
+            <mxPoint x="-8" y="2" as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="wTu3hDlNceVT-fVzVu58-47" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="wTu3hDlNceVT-fVzVu58-13">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="80" y="428.51" as="sourcePoint" />
             <mxPoint x="130" y="428.51" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-66" value="Child" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="wTu3hDlNceVT-fVzVu58-47">
+          <mxGeometry x="-0.311" y="-2" relative="1" as="geometry">
+            <mxPoint x="9" y="-2" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="wTu3hDlNceVT-fVzVu58-49" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1">
@@ -502,14 +536,53 @@
             <mxPoint x="170" y="520.49" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="wTu3hDlNceVT-fVzVu58-52" value="" style="endArrow=classic;html=1;rounded=0;fillColor=#e51400;strokeColor=#B20000;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="79Y2pOsYBKYRsN46qcYY-1" target="wTu3hDlNceVT-fVzVu58-1">
-          <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="260" y="80" as="sourcePoint" />
-            <mxPoint x="310" y="30" as="targetPoint" />
+        <mxCell id="wTu3hDlNceVT-fVzVu58-67" value="Child" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="wTu3hDlNceVT-fVzVu58-49">
+          <mxGeometry x="-0.3782" y="3" relative="1" as="geometry">
+            <mxPoint x="12" y="4" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="wTu3hDlNceVT-fVzVu58-53" value="Trust Forest (transitive)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="wTu3hDlNceVT-fVzVu58-52">
-          <mxGeometry x="0.1339" y="-1" relative="1" as="geometry">
+        <mxCell id="wTu3hDlNceVT-fVzVu58-54" value="&lt;span style=&quot;background-color: rgb(255, 255, 255);&quot;&gt;capri.hosting.dnsi&lt;/span&gt;&lt;br style=&quot;background-color: rgb(236, 236, 236);&quot;&gt;&lt;span style=&quot;background-color: rgb(255, 255, 255);&quot;&gt;CAPRI-DNSI&lt;/span&gt;" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;spacingTop=-7;image=img/lib/active_directory/active_directory.svg;fontSize=15;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="-330" y="-90" width="50" height="42.5" as="geometry" />
+        </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-57" value="&lt;span style=&quot;background-color: rgb(255, 255, 255);&quot;&gt;cirella.hosting.dnsi&lt;/span&gt;&lt;br style=&quot;background-color: rgb(236, 236, 236);&quot;&gt;&lt;span style=&quot;background-color: rgb(255, 255, 255);&quot;&gt;CIRELLA-DNSI&lt;/span&gt;" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;spacingTop=-7;image=img/lib/active_directory/active_directory.svg;fontSize=15;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="-360" y="20" width="50" height="42.5" as="geometry" />
+        </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-58" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0;exitDx=0;exitDy=0;strokeColor=#B20000;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;fillColor=#e51400;startArrow=classic;startFill=1;" edge="1" parent="1" source="wTu3hDlNceVT-fVzVu58-1" target="wTu3hDlNceVT-fVzVu58-57">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="47" y="265.5" as="sourcePoint" />
+            <mxPoint x="-340" y="262.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-59" value="External trust (non-transitive)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];rounded=0;strokeColor=#B20000;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;fillColor=#e51400;" vertex="1" connectable="0" parent="wTu3hDlNceVT-fVzVu58-58">
+          <mxGeometry x="0.0417" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-60" value="&lt;span style=&quot;background-color: rgb(255, 255, 255);&quot;&gt;dimgcavoli.its.dnsi&lt;/span&gt;&lt;br style=&quot;background-color: rgb(236, 236, 236);&quot;&gt;&lt;span style=&quot;background-color: rgb(255, 255, 255);&quot;&gt;DIMGCAVOLI-DNSI&lt;/span&gt;" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;spacingTop=-7;image=img/lib/active_directory/active_directory.svg;fontSize=15;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="-380" y="130" width="50" height="42.5" as="geometry" />
+        </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-61" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;strokeColor=#B20000;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;fillColor=#e51400;startArrow=classic;startFill=1;" edge="1" parent="1" source="wTu3hDlNceVT-fVzVu58-1" target="wTu3hDlNceVT-fVzVu58-60">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="210" as="sourcePoint" />
+            <mxPoint x="-90" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-62" value="Forest trust (transitive)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];rounded=0;strokeColor=#B20000;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;fillColor=#e51400;" vertex="1" connectable="0" parent="wTu3hDlNceVT-fVzVu58-61">
+          <mxGeometry x="0.0417" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-68" value="dimgcomo.its.dnsi&lt;br&gt;DIMGCOMO-DNSI" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;spacingTop=-7;image=img/lib/active_directory/active_directory.svg;fontSize=15;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="-380" y="230" width="50" height="42.5" as="geometry" />
+        </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-69" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#B20000;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;fillColor=#e51400;startArrow=classic;startFill=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" edge="1" parent="1" source="wTu3hDlNceVT-fVzVu58-1" target="wTu3hDlNceVT-fVzVu58-68">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="60" y="160" as="sourcePoint" />
+            <mxPoint x="-170" y="461" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wTu3hDlNceVT-fVzVu58-70" value="Forest trust (transitive)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];rounded=0;strokeColor=#B20000;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;fillColor=#e51400;" vertex="1" connectable="0" parent="wTu3hDlNceVT-fVzVu58-69">
+          <mxGeometry x="0.0417" y="1" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
