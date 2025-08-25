@@ -1,9 +1,66 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0" version="28.1.1">
-  <diagram name="Page-1" id="jDbrZUsVlZ3H9AaUaK4C">
-    <mxGraphModel>
+  <diagram name="old" id="jDbrZUsVlZ3H9AaUaK4C">
+    <mxGraphModel dx="1170" dy="758" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-17" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D0E2ED;strokeColor=#23445d;" vertex="1" parent="1">
+          <mxGeometry x="40" y="330" width="380" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-25" value="" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=light-dark(#FF00DD,#EDEDED);" vertex="1" parent="1">
+          <mxGeometry x="60" y="340" width="310" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-19" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BDEAFF;strokeColor=#10739e;" vertex="1" parent="1">
+          <mxGeometry x="40" y="30" width="380" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-24" value="" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=light-dark(#ff0000, #EDEDED);" vertex="1" parent="1">
+          <mxGeometry x="75" y="40" width="285" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-18" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFDCB0;strokeColor=#b46504;" vertex="1" parent="1">
+          <mxGeometry x="40" y="180" width="380" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-23" value="" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=light-dark(#0000FF,#EDEDED);" vertex="1" parent="1">
+          <mxGeometry x="70" y="190" width="290" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-1" value="pianosa-t022" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.servers.server_generic;fillColor=#DA4026;" vertex="1" parent="1">
+          <mxGeometry x="120" y="74" width="27" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-2" value="pianosa-t023" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.servers.server_generic;fillColor=#DA4026;" vertex="1" parent="1">
+          <mxGeometry x="230" y="74" width="27" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-3" value="pianosa-t032" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.servers.server_generic;fillColor=#2072B8;" vertex="1" parent="1">
+          <mxGeometry x="120" y="230" width="27" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-4" value="pianosa-t035" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.servers.server_generic;fillColor=#2072B8;" vertex="1" parent="1">
+          <mxGeometry x="230" y="230" width="27" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-5" value="pianosa-t051" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.servers.server_generic;" vertex="1" parent="1">
+          <mxGeometry x="93" y="380" width="27" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-6" value="pianosa-t052" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.servers.server_generic;" vertex="1" parent="1">
+          <mxGeometry x="180" y="380" width="27" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-7" value="pianosa-t053" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.servers.server_generic;" vertex="1" parent="1">
+          <mxGeometry x="260" y="380" width="27" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-13" value="PROXY" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.concepts.web_services;aspect=fixed;fontSize=10;spacing=-2;" vertex="1" parent="1">
+          <mxGeometry x="330" y="80" width="20" height="18.67" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-14" value="MBX" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.concepts.mailbox2;aspect=fixed;fontSize=10;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="330" y="404.26" width="30" height="27.74" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-15" value="DKIM" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.concepts.file_key;aspect=fixed;fontSize=10;spacing=-2;" vertex="1" parent="1">
+          <mxGeometry x="330" y="119.45" width="20" height="22.55" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-20" value="SMTP" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.services.email_service;aspect=fixed;fontSize=10;spacing=-2;" vertex="1" parent="1">
+          <mxGeometry x="330" y="50" width="20" height="16.55" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-21" value="LDAP" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.security.active_directory;aspect=fixed;fontSize=10;spacing=-2;" vertex="1" parent="1">
+          <mxGeometry x="325" y="203.96" width="30" height="26.04" as="geometry" />
+        </mxCell>
+        <mxCell id="ZeWjZz9L0hAY9FUaXze4-22" value="WEBAPP" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.concepts.website;aspect=fixed;fontSize=10;spacing=0;" vertex="1" parent="1">
+          <mxGeometry x="330" y="350" width="30" height="24.91" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
