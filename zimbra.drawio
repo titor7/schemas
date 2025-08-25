@@ -51,21 +51,21 @@
         <mxCell id="ZeWjZz9L0hAY9FUaXze4-50" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;edgeStyle=orthogonalEdgeStyle;curved=1;" edge="1" parent="1" source="ZeWjZz9L0hAY9FUaXze4-1" target="ZeWjZz9L0hAY9FUaXze4-44">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="161" y="60" />
-              <mxPoint x="-77" y="60" />
+              <mxPoint x="161" y="20" />
+              <mxPoint x="-77" y="20" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="ZeWjZz9L0hAY9FUaXze4-53" value="301_Intranet_Externe&lt;br&gt;179.30.1.122" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="ZeWjZz9L0hAY9FUaXze4-50">
           <mxGeometry x="0.2624" relative="1" as="geometry">
-            <mxPoint x="50" as="offset" />
+            <mxPoint x="69" y="10" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="ZeWjZz9L0hAY9FUaXze4-51" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;curved=1;" edge="1" parent="1" source="ZeWjZz9L0hAY9FUaXze4-1" target="ZeWjZz9L0hAY9FUaXze4-44">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="161" y="10" />
-              <mxPoint x="-77" y="10" />
+              <mxPoint x="161" y="-10" />
+              <mxPoint x="-77" y="-10" />
             </Array>
           </mxGeometry>
         </mxCell>
